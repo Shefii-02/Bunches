@@ -1,0 +1,615 @@
+
+@extends('layouts.frontend')
+
+@section('styles')
+    <style>
+        .round-checkbox input[type="checkbox"]:checked+label, .round-checkbox input[type="radio"]:checked+label, .round-radio input[type="radio"]:checked+label {
+            background-color: #f591c1;
+            border-color: #f591c1 !important;
+        }
+        
+        .round-checkbox label, .round-radio label {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            cursor: pointer;
+            height: 28px;
+            /*right: 0;*/
+            position: absolute;
+            top: 20px;
+            z-index: 9;
+            width: 28px;
+        }
+        
+        .round-checkbox input[type="checkbox"]:checked+label:after, .round-checkbox input[type="radio"]:checked+label:after, .round-radio input[type="radio"]:checked+label:after {
+            opacity: 1;
+        }
+        
+        .round-checkbox label:after, .round-radio label:after {
+            border: 2px solid #fff;
+            border-top: none;
+            border-right: none;
+            content: "";
+            height: 6px;
+            left: 7px;
+            opacity: 0;
+            position: absolute;
+            top: 8px;
+            transform: rotate(-45deg);
+            width: 12px;
+        }
+        .round-checkbox input[type="checkbox"], .round-checkbox input[type="radio"], .round-radio input[type="radio"] {
+                visibility: hidden;
+            }
+            .round-checkbox input[type="checkbox"], .round-checkbox input[type="radio"] {
+                visibility: hidden;
+            }
+        #st-1{
+            z-index:10 !important;
+        }
+        
+        .product-detail p{
+            padding:0 !important;
+            overflow: hidden;
+              width: 100%;
+              display: -webkit-box;
+              -webkit-line-clamp: 2;
+              -webkit-box-orient: vertical;
+        }
+        
+        .child_div, .third_section {
+            display: none;
+            position: absolute;
+            width: 100%;
+            left: 0;
+        }
+        
+       
+
+.round-radio label {
+    top: -5px !important;
+}
+     
+    </style>
+@endsection
+
+@section('contents')
+    <section class="bread_crumb bg-light py-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-6">
+                    <p class="mb-0 f-15">{{capitalText($product->name)}}</p>
+                </div>
+                <div class="col-6 text-end">
+                    <p class="mb-0 f-14 text-dark ">You are here: <a href="{{url('/')}}" class="text-dark">Bunches</a> > <a href="{{url('category')}}">Catergory</a> > {{$product->name}}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    @php
+         $pdct_details = $product->product_variation->where('product_id',$product->id)->first();
+    @endphp
+<section class="product_single py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-md-5">
+                <div class="main_img single-item">
+                     @foreach($product->images ?? [] as $imgP)
+                        <div class="">
+                            <img src="{!! $imgP->picture != '' ? asset('images/products/' . $imgP->picture) : asset('/assets/images/dummy-product.jpg') !!}" onerror="this.onerror=null;this.src='/assets/images/dummy-product.jpg';" class="w-100" alt="">
+                        </div>
+                    @endforeach
+                </div>
+                <ul class="image_nav p-0 m-0 list-unstyled d-flex mt-2">
+                    @foreach($product->images ?? [] as $key => $imgP)
+                    <li  class="smallnav" role="button">
+                        <img data-index="{{$key}}" src="{!! $imgP->picture != '' ? asset('images/products/' . $imgP->picture) : asset('/assets/images/dummy-product.jpg') !!}" onerror="this.onerror=null;this.src='/assets/images/dummy-product.jpg';" width="100" alt="">
+                    </li>
+                    @endforeach
+                   
+                </ul>
+            </div>
+            
+            <div class="col-12 col-md-7">
+
+                <h3 class="fw-bold text-dark mt-1">{{capitalText($product->name)}}</h3>
+                <h3 class="text-primary-color product_price">{{getPrice($product->MinPrice->price)}}</h3>
+                <div class="d-flex align-items-center justify-content-start">
+                    <span class="me-2 text-dark f-15 fw-bold ">SKU :</span>
+                    
+                    <span class="text-success ms-2 f-15 product_sku">@if($product->product_variation->count() == 1 ) {{$product->product_variation[0]->sku}} @endif</span>
+                </div>
+                <!-- ShareThis BEGIN --><div class="sharethis-inline-share-buttons text-start my-4"></div><!-- ShareThis END -->
+                
+                @if($product->description != null  && strlen($product->description) >0)
+                    <div class="product-detail  py-3 fw-300 f-14" > 
+                        {!! $product->description !!}
+                        
+                         <a class="read-more-link text-decoration-none" role="button">Read More</a>
+                         <a class="show-less-link text-decoration-none" role="button" style="display: none;">Show Less</a>
+                    </div>
+                @endif        
+                
+            
+                @if($product->mark_stock_status == 0)
+                    @if(session()->has('ordertype'))
+                        @if( $product->product_type == 'both' || $product->product_type == session('ordertype'))
+
+                            
+                              <div class="product__variations">
+                                        @if(count($product->option)>0 && ($product->has_variation == 1))
+                                            @php
+                                                 $options = array_values($product->option->pluck('type')->unique()->toArray());
+                                               
+                                                    $first_option = $options[0];
+                                            @endphp
+                                           <div class="product__variations @if($product->has_customization) d-none @endif">
+                                                <div class="row position-relative d-flex align-items-center w-100" >
+                                                    <div class="col-3">
+                                                            <h5 class="mb-0 mt-3">Select {{titleText($first_option)}}</h5>
+                                                    </div>
+                                                    <div class="col-9">
+                                                        <div class="row" >
+                                                            @php
+                                                                $key1 =0;
+                                                            @endphp
+                                                            
+                                                            @php
+                                                                $uniq_types = $product->option()->where('type',$first_option)->get();
+                                                            
+                                                            @endphp
+                                                            
+                                                            @foreach($uniq_types->unique('value') as $size_items)
+                                                    <!--/////////// Show First Option ////////////////////-->  
+                                                                <div class="col-6 col-lg-4 text-center option_vals cursor-pointer">
+                                                                    @php
+                                                                        if(isset($options[1]))
+                                                                            $second_option = $options[1];
+                                                                        else
+                                                                            $second_option = '';
+                                                                        
+                                                                    @endphp
+                                                                    
+                                                                   
+                                                                      @if ($product->option->where('type', $second_option)->count() == 0)
+                                                                            @php
+                                                                                $variation_data = App\Models\VariationKey::leftJoin('product_variations', 'variation_keys.variation_id', 'product_variations.id')
+                                                                                    ->where(function ($query) {
+                                                                                        return $query->where('product_variations.sku', '<>', '')->orWhere('product_variations.sku', '<>', null);
+                                                                                    })
+                                                                                    ->where('value', $size_items->value)
+                                                                                    ->where('product_variations.product_id', $product->id)
+                                                                                    ->first();
+                                                                            @endphp
+                                                                        @endif
+                                                                    <div class="round-checkbox  mb-2"> 
+                                                                        <input type="radio" name="single_selection" @if($product->option->where('type',$second_option)->count() == 0 && ($variation_data))  data-vname="{{$variation_data->variation}}" data-price="{{$variation_data->price}}" data-specialprice="{{$variation_data->special_price}}" data-id="{{$variation_data->variation_id}}" @endif data-option="{{$size_items->id}}" @if($key1 == 0) checked @endif class="vari_checkbox" id="checkbox_option_rounded_{{$size_items->id}}">
+                                                                        <label for="checkbox_option_rounded_{{$size_items->id}}" ></label>
+                                                                    </div>
+                                                                    <div data-option="{{$size_items->id}}" id="show_variations_{{$size_items->id}}" class="show_variations @if($key1 == 0) active @endif">
+                                                                        <div class="card position-relative bg-white vari_type border-0 justify-content-center" >
+                                                                            <div class="row">
+                                                                                <div class="col-md-12 position-relative">
+                                                                                    <img src="{{imageExisted('/assets/images/icon-img/'.$size_items->value.'.png')}}">
+                                                                                </div>
+                                                                                <div class="col-md-12">
+                                                                                    <p class="card-price fw-bold">{{$size_items->value}} </p>
+                                                                                    @if($product->option->where('type',$second_option)->count() == 0 && ($variation_data))
+                                                                                        <small class="d-none">{{getPrice($variation_data->price)}} </small>
+                                                                                    @endif
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                    <!--/////////// Show Only  Two Option Time ////////////////////-->  
+                                                                        @if($product->option->where('type',$second_option)->count() > 0)
+                                                                            <div id="child_div_{{$size_items->id}}" class=" rounded mt-3 child_div pt-4" @if($key1 == 0) style="display:block" @endif>
+                                                                                
+                                                                                <div class="row d-flex align-items-center w-100 m-0">
+                                                                                     <div class="col-3">
+                                                                                         <div class="row">
+                                                                                            <h5 class=" text-start">Select {{titleText($second_option)}}</h5>
+                                                                                             
+                                                                                         </div>
+                                                                                    </div>
+                                                                                    <div class="col-9 p-0">
+                                                                                        <div class="row flex-row-reverse11 justify-content-end11 w-100 m-0" >
+                                                                                            @php
+                                                                                                    $ii = 0;
+                                                                                                    
+                                                                                                    $key2 = 0
+                                                                                               @endphp
+                                                                                        @php
+                                                                                            // $uniq_values = $product->option()->where('type',$second_option)->get();
+                                                                                            $firstOption_Vids = $product->option()->where('type',$first_option)->where('value',$size_items->value)->pluck('variation_id')->toArray();
+                                                                                            $uniq_values = $product->option()->where('type',$second_option)->whereIn('variation_id',$firstOption_Vids)->get();
+                                                                                           
+                                                                                        @endphp
+                                                                                            @foreach($uniq_values as $type_items)
+                                                                                                @if($product->option->where('type',$second_option)->count() == 0)
+                                                                                                    @php
+                                                                                                        $variation_data = App\Models\VariationKey::leftJoin('product_variations','variation_keys.variation_id','product_variations.id')
+                                                                                                                                            ->where(function($query){
+                                                                                                                                                 return $query
+                                                                                                                                                        ->where('product_variations.sku', '<>','')
+                                                                                                                                                        ->orWhere('product_variations.sku', '<>',NULL);
+                                                                                                                     						})
+                                                                                                                     						->where('value',$size_items->value)
+                                                                                                                                            ->where('product_variations.product_id',$product->id)
+                                                                                                                                            ->first(); 
+                                                                                                    @endphp
+                                                                                                @else
+                                                                                
+                                                                                                   @php
+                                                                                                       $vari_ids = $product->variationList->where('value',$size_items->value)->pluck('variation_id');
+                                                                                                       $variation_data = App\Models\VariationKey::leftJoin('product_variations','variation_keys.variation_id','product_variations.id')
+                                                                                                                                                ->where(function($query){
+                                                                                                                                                     return $query
+                                                                                                                                                            ->where('product_variations.sku', '<>','')
+                                                                                                                                                            ->orWhere('product_variations.sku', '<>',NULL);
+                                                                                                                         						})
+                                                                                                                                                ->where('product_variations.product_id',$product->id)
+                                                                                                                                                ->where('value',$type_items->value)
+                                                                                                                                                ->whereIn('variation_id',$vari_ids)
+                                                                                                                                                ->first(); 
+                                                                                                   
+                                                                                                    @endphp
+                                                                                                @endif
+                                                                                                @if($variation_data)
+                                                                                                        <div class="col-6 col-md-6 col-lg-4 text-center child_div_type {{$variation_data->value}}">
+                                                                                                            <div class="card position-relative bg-white second_section border-0" data-childId="child_div_{{$type_items->id}}">
+                                                                                                                <div class="row">
+                                                                                                                    <div class="col-md-12 position-relative">
+                                                                                                                        <img src="{{imageExisted('/assets/images/icon-img/'.$variation_data->value.'.png')}}">
+                                                                                                                    </div>
+                                                                                                                    <div class="col-md-12">
+                                                                                                                        <p class="card-price fw-bold">{{$variation_data->value}} </p>
+                                                                                                                        
+                                                                                                                    </div>
+                                                                                                                    <div class="round-radio ">
+                                                                                                                        <input type="radio" data-childId="child_div_{{$type_items->id}}"  class="option__type"  data-vname="{{$variation_data->variation}}"  data-price="{{$variation_data->price}}" data-specialprice="{{$variation_data->special_price}}" data-id="{{$variation_data->variation_id}}"   name="vari_type_{{$key1}}" @if($key1 == 0 && $ii == 0) checked @endif  id="radio_rounded_{{$key1}}_{{$key2}}">
+                                                                                                                        <label for="radio_rounded_{{$key1}}_{{$key2}}" ></label>
+                                                                                                                    </div>
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </div>
+                                                                                                        @php 
+                                                                                                            $ii = $ii + 1;
+                                                                                                        @endphp
+                                                                                                @endif
+                                                                                                @php
+                                                                                                    $key2 = $key2 +1;
+                                                                                                @endphp
+                                                                                            @endforeach  
+                                                                                        </div>
+                                                                                    </div>
+                                                                                     
+                                                                               </div>
+                                                                            </div>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                                @php
+                                                                    $key1= $key1 +1;
+                                                                @endphp
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                   
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    
+                                   
+                                    <div class="purchase-info" id="read-more" @if(isset($options)) @if(count($options)>2) style="margin-top: 500px;" @elseif(count($options)>1) style="margin-top: 130px;"  @endif @endif>
+                                        <div class="row">
+                                            <div class="col-lg-12 mt-5" >
+                                                
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                        @else
+                            <div class="col-lg-12 bg-danger-subtle bg-opacity-50 p-4 rounded mt-2 mb-2  d-flex flex-column">
+                                <h2 class="text-danger  fw-bolder">Oops!</h2>
+                                <h6 class="text-dark fw-bolder">
+                                    This item  currently not available
+                                </h6>    
+                                <h6 class="text-dark">
+                                    We are working on getting your favorite item to your area soon.
+                                </h6>
+                                <div class="form-group mt-2">
+                                    <button class="btn btn-dark text-light rounded" data-bs-target="#DeliveryModalToggle" data-bs-toggle="modal" >@if(session('ordertype') == 'delivery') {{'Update'}} @else {{'Switch to' }} @endif Delivery City </button>
+                                </div>
+                            </div>
+                        @endif
+                    @endif
+                    
+                    <div class="">
+                        <div class="row">
+                            <div class="col-12">
+                                <label for="" class="f-14 text-dark">Card Message</label>
+                                <textarea class="form-control f-14 w-100" id="message" style="height: 100px;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="text-center">
+                        <div class="d-flex pt-3  align-items-center">
+                            <div role="button">
+                                <img class="border" data-bs-toggle="modal" data-bs-target="#shippingDetailsModal" src="{{asset('assets/images/gift.png')}}" width="250" alt="">
+                            </div>
+                            <div class="d-flex align-items-center mx-3"> <span
+                                    class="f-15 fw-bold text-dark me-3">Quantity :
+                                </span> <input type="number" value="1"
+                                    class="form-control rounded-0 w-25 f-14 py-1 text-center quantity">
+                            </div>
+                            <div><button  data-product="{{$pdct_details->id}}" data-sku="{{$pdct_details->sku}}" class="btn cart-button rounded-0 f-15 primary-dark-bg fw-bold border-0 add-cart-btn"> ADD
+                                    TO CART</button></div>
+                        </div>
+                    </div>
+
+
+
+                @else
+                    <div class="product-price mt-3">
+                        <span style="font-size:150%;font-weight:400;color:#ff0000;">Out of Stock</span>
+                    </div>
+                @endif
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+   <section class="related-products">
+        <div class="container">
+            <div class="row justify-content-center">
+                @if($suggested_products->count() > 0) 
+                    <div class="col-12">
+                        <h1 class="text-center text-md-left mb-lg-4">Suggested Products</h1>
+                    </div>
+                    @foreach($suggested_products as $rel_products)
+                        @if($rel_products->products)
+                            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                <a href="{{route('product-single',$rel_products->products->slug)}}" class="cursor-pointer text-decoration-none">
+                                    <div class="card border-0 rounded card-product-listing">
+                                        <div class="d-flex align-items-center  position-relative">
+                                            <img class="w-100 h-auto {{ $rel_products->products->mark_stock_status == 1 ? 'product-image out-of-stock' : ''}}" src="{!! ($rel_products->thumbImages->count()) != '' ? asset('images/products/' . $rel_products->thumbImages->first()->picture) : asset('/assets/images/dummy-product.jpg') !!}" onerror="this.onerror=null;this.src='/assets/images/dummy-product.jpg';" alt="" >
+                                            <div class="stock-overlay">
+                                                <p class="stock-text-overlay">Out of Stock</p>
+                                            </div>
+                                        </div>
+                                        <div class="card-body text-center">
+                                           <h4 class="mb-0 fw-bold text-dark singleLinetext-d" >{!! capitalText($rel_products->products->name) !!}</h4>
+                                        </div>
+                                    </div>         
+                                </a>
+                            </div>
+                        @endif
+                    @endforeach
+                @endif
+            </div>
+        </div>
+    </section>
+
+<!-- Modal -->
+<div class="modal fade" id="shippingDetailsModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="exampleModalLabel">Shipped in a Gift Box</h3>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <p>
+            The flowers or gift you selected will be delivered by UPS or FedEx Flowers will arrive carefully packaged in our signature shipping box, which is specially designed to ensure optimal freshness. See below for details. Food gifts and plants will arrive in a box specially designed to preserve freshness. Reasons to choose flowers fresh from our farms: A wider selection of flower arrangements and gifts. From rare flower varieties to unique pairings of the freshest blooms, many of our bouquets, plants and hand-crafted gift baskets are available exclusively through direct shipment. Added value. Many of our direct shipped fresh bouquets let you express yourself perfectly at a great value. Look for special offers and new deals every day, to help our customers send even more smiles. DIRECT SHIP Bouquets. From South America to Holland to right here in the United States, our direct shipment flowers are picked from select floral fields around the world and shipped to our distribution centers. Freshness Care The flowers go through our FRESHNESS CARE where they are cleaned, hydrated and quality tested before being shipped to your recipient. Each gift is carefully inspected to ensure that it meets our quality standards. Our floral is kept fresh and well hydrated to guarantee our flowers will last for 7 days. Some of our varieties will even last longer with proper care. Flowers shipped to your recipient may or may not come pre-arranged. Most bouquets will arrive pre-arranged, but will require some preparation before being placed in a vase. This includes unwrapping the bouquet, adding water and flower preservative (packets of which are included with every bouquet purchase) to the vase, removing foliage that may fall below the water line and cutting the stems at the bottom of the bouquet. In addition, some Bouquets will not arrive pre-arranged, and may require some creativity when placing stems in the vase. Additional Information: Condition of flowers upon arrival. Flowers and plants that come in a box arrive very fresh, and may appear to be in prior-to-peak condition. It's important to hydrate these flowers immediately by adding fresh water and flower preservative. Once hydrated, the flowers will begin to open, bloom and flourish. A complimentary care card may be included to provide care information and specific details on the type of flowers in the bouquet. Due to the perishable nature of flowers and plants, please ensure someone will be home on the requested delivery date. Drivers may leave the package at the door if your recipient is not at home. Same-Day Delivery is not available for gifts delivered by UPS or FedEx. For flowers and gifts that can be delivered today, view our Same-Day Flowers Collection.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn  primary-dark-bg rounded-0" data-bs-dismiss="modal"><span class="text-dark">Close</span></button>
+        </div>
+    </div>
+  </div>
+</div>
+
+@endsection
+
+
+@section('scripts')
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+
+<script>
+   
+     $(document).ready(function () {
+        $('.read-more-link').click(function () {
+            const description = $(this).prev('p');
+            description.css('webkit-line-clamp', 'unset');
+            $(this).hide();
+            $(this).siblings('.show-less-link').show();
+        });
+
+        $('.show-less-link').click(function () {
+            const description = $(this).prevAll('p');
+            description.css('webkit-line-clamp', '1');
+            $(this).hide();
+            $(this).siblings('.read-more-link').show();
+        });
+        
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////
+                            // without location choosed 
+        //////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        @if(session()->has('session_string'))
+        @else
+            $('#DeliveryModalToggle').attr('data-bs-backdrop', 'static')
+                .attr('data-bs-keyboard', 'false')
+                .modal('show');
+        @endif
+        
+         $('input[name="single_selection"]').trigger('change')
+         
+         
+         $('.single-item').slick();
+   
+        
+        
+    });
+    
+            $(document).on("click",".smallnav img",function(){
+                 var di = $(this).data("index");
+                 
+                 $( '.single-item' ).slick('slickGoTo', di);
+
+            })
+  
+    
+                            // image slider
+    ////////////////////////////////////////////////////////////////////////////////////////////// 
+       
+      
+        $('#ChangeDeliveryModalToggle').on('hidden.bs.modal', function () {
+                window.location.href = '';
+        });
+        
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////
+                            // add to cart
+    ////////////////////////////////////////////////////////////////////////////////////////////// 
+        $('body').on('click', '.show_variations', async function () {
+            var checkbox = $(this).data('checkbox');
+            $('#'+checkbox).prop('checked', true);
+            $('input[name="single_selection"]').trigger('change')
+        });
+        
+        
+        $('body').on('change click', 'input[name="single_selection"]', async function () {
+            var price   = parseFloat($(this).data('price'));
+            var sku   = $('.vari_checkbox:checked').data('sku');
+            var vari_id = $('.vari_checkbox:checked').data('id');
+            $('.product_price').text("$" + price.toFixed(2))
+            $('.product_sku').text(sku)
+            $('.add-cart-btn').attr('data-product',vari_id);
+            
+        }); 
+        
+        
+        
+    @if(count($product->option)>0 && ($product->has_variation == 1)) 
+        @if(count($options) == 2)
+        $('body').on('click', '.add-cart-btn', function() {
+            var cartItems = [];
+            
+                    $('.vari_checkbox:checked').each(function() {
+                        var $checkbox = $(this);
+                        var $showVariations = $checkbox.closest('.option_vals').find('.show_variations');
+                        // var qty = parseInt($showVariations.find('.customQty').val());
+                        var qty = $('.quantity').val();
+                        var price = parseFloat($showVariations.find('.option__type:checked').data('price'));
+                        var pdct_id = parseInt($showVariations.find('.option__type:checked').data('id'));
+                        cartItems.push({ price: price, pdct_id: pdct_id, quantity: qty });
+                    });
+    
+    
+            // Loop through the cart items array
+            var index = 0;
+            function sendCartData() {
+                if (index < cartItems.length) {
+                    var cartItem = cartItems[index];
+                    var price = cartItem.price;
+                    var pdct_id = cartItem.pdct_id;
+                    var quantity = cartItem.quantity;
+                    
+                    $.ajax({
+                        url: '{{url('basket/add')}}',
+                        type: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        data: { price: price, pdct_id: pdct_id, quantity: quantity,flavor :flavor, color :color, message :message, border_color :border_color, text_color :text_color,customized : customized},
+                        success: function(response) {
+                            if (response.result == 1) {
+                                $('.cart-icon .cart-count').html(response.cart_count);
+                            } else {
+                                alert('Error');
+                            }
+                                 
+                            var addToCartData = response.addToCartData;
+                
+                            
+                            index++;
+                            sendCartData(); // Call the function recursively to process the next cart item
+                        }
+                    });
+                } else {
+                    // All cart items have been processed
+                    Swal.fire({
+                        icon: 'success',
+                        text: 'Product(s) have been added to your cart.',
+                        showCancelButton: true,
+                        confirmButtonText: 'Go to Cart',
+                        cancelButtonText: 'Continue Shopping',
+                        allowOutsideClick: false
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '/cart';
+                        } else {
+                            window.location.href = '/menu';
+                        }
+                    });
+                }
+            }
+    
+            // Start sending the cart data
+            sendCartData();
+        });
+        
+    @else
+        $('body').on('click', '.add-cart-btn', function() {
+            var product_id = $(this).data('product');
+            var quantity   = $('.quantity').val();
+            var message    = $('#message').val();
+            
+            $.ajax({
+                url: '{{url('basket/add')}}',
+                type: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                data: { product_id : product_id, quantity : quantity, message : message},
+                success: function(response) {
+                   if(response.result == 1){
+                        $('.cart-icon .cart-count').html(response.cart_count);
+                        Swal.fire({
+                            icon: 'success',
+                            html: '<h1 class="main-h1"> Thank you </h1>' + '<h2 class="main-h2"> Product added to cart </h2>',
+                            showCancelButton: true,
+                            cancelButtonText: 'Continue Shopping',
+                            confirmButtonText: 'Go to Cart',
+                            allowOutsideClick: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/cart';
+                            } else {
+                                window.location.href = '/';
+                            }
+                        });
+                        
+                        var addToCartData = response.addToCartData;
+                        console.log(addToCartData);
+                        // gtag("event", "add_to_cart", addToCartData);
+                        
+                    }
+                    else {
+                        alert('Error');
+                    }
+                }
+            });
+        });
+        
+      
+    
+    </script>
+    
+@endsection
