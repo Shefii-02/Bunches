@@ -30,7 +30,8 @@
             "Database\\Seeders\\": "database/seeders/"
         },"files": [
             "app/Helper/helpers.php", 
-            "app/Helper/Synconnection.php"
+            "app/Helper/Synconnection.php",
+            "app/Helper/CalenderFunction"
         ]
     },
     "autoload-dev": {
