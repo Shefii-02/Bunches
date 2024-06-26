@@ -31,7 +31,7 @@
         },"files": [
             "app/Helper/helpers.php", 
             "app/Helper/Synconnection.php",
-            "app/Helper/CalenderFunction"
+            "app/Helper/CalenderFunction.php"
         ]
     },
     "autoload-dev": {
