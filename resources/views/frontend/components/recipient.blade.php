@@ -27,7 +27,7 @@
                 @if(session('ordertype') == 'pickup')
                 <label>Pickup Date</label>
                 <!---------------------------------------PICKUP---------------------------------------------------------------------------------------->
-                    {!! ShippingRulePickupBasedCalender(null,session('ordertype')) !!}
+                    {!! ShippingRulePickupBasedCalender(session('pickup_id'),session('ordertype')) !!}
                 <!------------------------------------------------------------------------------------------------------------------------------------->
                 @else
                     <label>Delivery Date</label>
