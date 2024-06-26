@@ -110,10 +110,6 @@ function ShippingRulePickupBasedCalender($store_id = null, $type = null, $start_
 
     $allow_after_days = $shipping->days ?? 1;
 
-
-
-
-
     $currentDate = now();
     $firstMonth = $currentDate->copy();
     // $secondMonth = $currentDate->copy()->addMonth();
@@ -230,7 +226,10 @@ function ShippingRulePickupBasedCalender($store_id = null, $type = null, $start_
                     if ($hasafterAvailable == true && $afterAvailable->format('Y-m-d') > $currentDate->format('Y-m-d')) {
                         $isDisabled = true;
                     } elseif ($hasafterAvailable == true && $afterAvailable->format('Y-m-d') == $currentDate->format('Y-m-d')) {
-                        $availableTime_on = $openingTimeAfterCuttoff + $preparetime;
+                        // $availableTime_on = $openingTimeAfterCuttoff + $preparetime;
+                        if($availableTime_on <= $openingTimeAfterCuttoff){
+                            $availableTime_on = $openingTimeAfterCuttoff + $preparetime;
+                            }
                     }
 
                     ///////////////Manual date skip code end/////////////////////////////////
