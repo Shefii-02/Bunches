@@ -157,7 +157,7 @@
         
         .date.disabled {
             cursor: not-allowed;
-            color: gray;
+            color: gray !important;
         }
         
         /* Custom styles for the select dropdown */
